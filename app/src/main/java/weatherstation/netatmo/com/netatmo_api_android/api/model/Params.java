@@ -26,18 +26,19 @@ public class Params {
 
     // These are some of the types available.
     // See the full list here: http://dev.netatmo.com/doc/restapi/getmeasure
-    public static final String TYPE_TEMPERATURE = "Temperature";
+    public static final String TYPE_TEMPERATURE = "temperature";
     public static final String TYPE_CO2 = "CO2";
-    public static final String TYPE_HUMIDITY = "Humidity";
-    public static final String TYPE_PRESSURE = "Pressure";
-    public static final String TYPE_NOISE = "Noise";
+    public static final String TYPE_HUMIDITY = "humidity";
+    public static final String TYPE_PRESSURE = "pressure";
+    public static final String TYPE_NOISE = "noise";
     public static final String TYPE_MIN_TEMP = "min_temp";
     public static final String TYPE_MAX_TEMP = "max_temp";
-    public static final String TYPE_RAIN = "Rain";
-    public static final String TYPE_RAIN_SUM_24 = "sum_rain_24";
-    public static final String TYPE_RAIN_SUM_1 = "sum_rain_1";
-    public static final String TYPE_WIND_ANGLE = "WindAngle";
-    public static final String TYPE_WIND_STRENGTH = "WindStrength";
-    public static final String TYPE_GUST_ANGLE = "GustAngle";
-    public static final String TYPE_GUST_STRENGTH = "GustStrength";
+    public static final String TYPE_RAIN = "rain";
+    public static final String TYPE_RAIN_SUM_24 = "rain_24h";
+    public static final String TYPE_RAIN_SUM_1 = "rain_60min";
+    public static final String TYPE_RAIN_LIVE="rain_live";
+    public static final String TYPE_WIND_ANGLE = "wind_angle";
+    public static final String TYPE_WIND_STRENGTH = "wind_strength";
+    public static final String TYPE_GUST_ANGLE = "gust_angle";
+    public static final String TYPE_GUST_STRENGTH = "gust_strength";
 }

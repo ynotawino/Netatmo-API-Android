@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package weatherstation.netatmo.com.netatmo_api_android.sample;
+package weatherstation.netatmo.com.netatmo_api_android.weather_app;
 
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -40,7 +40,7 @@ import org.json.JSONObject;
 
 import weatherstation.netatmo.com.netatmo_api_android.R;
 
-public class LoginActivity extends ActionBarActivity {
+public class LoginActivity extends AppCompatActivity {
 
     private Boolean mInProgress = false;
 

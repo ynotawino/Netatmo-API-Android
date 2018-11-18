@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="menu_humidity">
+        <item>Humidity</item>
+        <item>Gust strength</item>
+        <item>Noise</item>
+        <item>Pressure</item>
+        <item>Live rain</item>
+        <item>Per hour rain</item>
+        <item>Per day rain</item>
+        <item>Wind strength</item>
+        <item>Temperature</item>
+    </string-array>
+
+
+</resources>

@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "269612308306",
+    "firebase_url": "https://weather-app-9d44c.firebaseio.com",
+    "project_id": "weather-app-9d44c",
+    "storage_bucket": "weather-app-9d44c.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:269612308306:android:5533a50e67395966",
+        "android_client_info": {
+          "package_name": "weatherstation.netatmo.com.netatmo_api_android"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "269612308306-o7qm3nd8iate50son957j7if6p43v49e.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "weatherstation.netatmo.com.netatmo_api_android",
+            "certificate_hash": "f71dd0db42ff77e8a018bda28a74f85b877388f3"
+          }
+        },
+        {
+          "client_id": "269612308306-dsahlejm7hf77mrj7ggv7p03v3h03p06.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAW0Om1BHlwMt_hOxcmdmqlC20YELeFY44"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "269612308306-dsahlejm7hf77mrj7ggv7p03v3h03p06.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -20,7 +20,6 @@ public class Measures {
 
     long beginTime;
     String temperature;
-    String CO2;
     String humidity;
     String pressure;
     String noise;
@@ -33,11 +32,12 @@ public class Measures {
     String windStrength;
     String gustAngle;
     String gustStrength;
+    private String location;
+    private String stationId;
 
-    public Measures() {
+    public Measures(int x){
         beginTime = 0;
         temperature = STRING_NO_DATA;
-        CO2 = STRING_NO_DATA;
         humidity = STRING_NO_DATA;
         pressure = STRING_NO_DATA;
         noise = STRING_NO_DATA;
@@ -48,6 +48,11 @@ public class Measures {
         windStrength = STRING_NO_DATA;
         gustAngle = STRING_NO_DATA;
         gustStrength = STRING_NO_DATA;
+
+        location=STRING_NO_DATA;
+    }
+
+    public Measures() {
 
     }
 
@@ -65,14 +70,6 @@ public class Measures {
 
     public void setTemperature(String temperature) {
         this.temperature = temperature;
-    }
-
-    public String getCO2() {
-        return CO2;
-    }
-
-    public void setCO2(String CO2) {
-        this.CO2 = CO2;
     }
 
     public String getHumidity() {
@@ -144,6 +141,19 @@ public class Measures {
     public String getGustStrength(){return gustStrength;}
 
 
+    public String getLocation() {
+        return location;
+    }
 
+    public void setLocation(String location) {
+        this.location = location;
+    }
 
+    public String getStationId() {
+        return stationId;
+    }
+
+    public void setStationId(String stationId) {
+        this.stationId = stationId;
+    }
 }

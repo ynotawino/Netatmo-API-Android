@@ -114,7 +114,7 @@ public class NetatmoUtils {
             JSONObject body = response.getJSONObject("body");
 
             // We parse all the stations
-            JSONArray stations = body.getJSONArray("devices");
+            JSONArray stations = body.getJSONArray("body");
             for (int j = 0; j < stations.length(); j++) {
                 Measures measures = new Measures();
                 JSONObject station = stations.getJSONObject(j);
@@ -128,9 +128,6 @@ public class NetatmoUtils {
                     switch (types[i]){
                         case Params.TYPE_TEMPERATURE:
                             measures.setTemperature(getJSONString(moduleData, types[i]));
-                            break;
-                        case Params.TYPE_CO2:
-                            measures.setCO2(getJSONString(moduleData, types[i]));
                             break;
                         case Params.TYPE_HUMIDITY:
                             measures.setHumidity(getJSONString(moduleData, types[i]));
@@ -169,9 +166,6 @@ public class NetatmoUtils {
                     switch (types[i]){
                         case Params.TYPE_TEMPERATURE:
                             measures.setTemperature(getJSONString(moduleData, types[i]));
-                            break;
-                        case Params.TYPE_CO2:
-                            measures.setCO2(getJSONString(moduleData, types[i]));
                             break;
                         case Params.TYPE_HUMIDITY:
                             measures.setHumidity(getJSONString(moduleData, types[i]));
