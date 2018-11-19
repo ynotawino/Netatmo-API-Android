@@ -36,7 +36,7 @@ public class Params {
     public static final String TYPE_RAIN = "rain";
     public static final String TYPE_RAIN_SUM_24 = "rain_24h";
     public static final String TYPE_RAIN_SUM_1 = "rain_60min";
-    public static final String TYPE_RAIN_LIVE="rain_live";
+    public static final String TYPE_RAIN_LIVE = "rain_live";
     public static final String TYPE_WIND_ANGLE = "wind_angle";
     public static final String TYPE_WIND_STRENGTH = "wind_strength";
     public static final String TYPE_GUST_ANGLE = "gust_angle";

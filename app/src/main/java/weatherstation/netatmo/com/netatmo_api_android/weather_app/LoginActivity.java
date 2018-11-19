@@ -42,19 +42,14 @@ import weatherstation.netatmo.com.netatmo_api_android.R;
 
 public class LoginActivity extends AppCompatActivity {
 
+    public static final String TAG = "LoginActivity";
+    private Handler handler = new Handler();
     private Boolean mInProgress = false;
-
     private String mEmail;
     private String mPassword;
-
     private EditText mEmailView;
     private EditText mPasswordView;
     private Button mSignInButtonView;
-
-    Handler handler = new Handler();
-
-    public static final String TAG = "LoginActivity";
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,13 +58,13 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
         setResult(RESULT_CANCELED);
 
-        mEmailView = (EditText)findViewById(R.id.email);
+        mEmailView = (EditText) findViewById(R.id.email);
 
-        mPasswordView = (EditText)findViewById(R.id.password);
+        mPasswordView = (EditText) findViewById(R.id.password);
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if(actionId == 42 || actionId == EditorInfo.IME_NULL){
+                if (actionId == 42 || actionId == EditorInfo.IME_NULL) {
                     attemptLogin();
                     return true;
                 }
@@ -77,7 +72,7 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
-        mSignInButtonView = (Button)findViewById(R.id.sign_in_button);
+        mSignInButtonView = (Button) findViewById(R.id.sign_in_button);
         mSignInButtonView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -98,7 +93,7 @@ public class LoginActivity extends AppCompatActivity {
         Intent browserIntent = new Intent();
         browserIntent.setAction(Intent.ACTION_VIEW);
 
-        switch (item.getItemId()){
+        switch (item.getItemId()) {
             case R.id.action_forgot_password:
                 browserIntent.setData(Uri.parse("https://auth.netatmo.com/access/lostpassword"));
                 startActivity(browserIntent);
@@ -114,8 +109,8 @@ public class LoginActivity extends AppCompatActivity {
 
     }
 
-    public void attemptLogin(){
-        if(mInProgress){
+    public void attemptLogin() {
+        if (mInProgress) {
             return;
         }
         mEmailView.setError(null);
@@ -127,19 +122,19 @@ public class LoginActivity extends AppCompatActivity {
         boolean cancel = false;
         View focusView = null;
 
-        if(TextUtils.isEmpty(mPassword)){
+        if (TextUtils.isEmpty(mPassword)) {
             mEmailView.setError(getString(R.string.error_field_required));
             focusView = mEmailView;
             cancel = true;
-        }else if(!mEmail.contains("@")){
+        } else if (!mEmail.contains("@")) {
             mEmailView.setError(getString(R.string.error_invalid_email));
             focusView = mEmailView;
             cancel = true;
         }
 
-        if(cancel){
+        if (cancel) {
             focusView.requestFocus();
-        }else{
+        } else {
             netatmoLogin();
         }
 
@@ -147,7 +142,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
 
-    private void netatmoLogin(){
+    private void netatmoLogin() {
 
         final SampleHttpClient sampleHttpClient = new SampleHttpClient(this);
         sampleHttpClient.login(mEmail, mPassword,
@@ -156,7 +151,7 @@ public class LoginActivity extends AppCompatActivity {
                     public void onResponse(String response) {
                         JSONObject jsonObject;
                         try {
-                            jsonObject= new JSONObject(response);
+                            jsonObject = new JSONObject(response);
                             sampleHttpClient.processOAuthResponse(jsonObject);
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -168,7 +163,7 @@ public class LoginActivity extends AppCompatActivity {
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        Log.e(TAG,error.toString());
+                        Log.e(TAG, error.toString());
                         handler.post(new Runnable() {
                             @Override
                             public void run() {
@@ -181,7 +176,7 @@ public class LoginActivity extends AppCompatActivity {
 
         );
 
-}
+    }
 
 
 }

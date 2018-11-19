@@ -29,9 +29,9 @@ import weatherstation.netatmo.com.netatmo_api_android.api.model.Params;
 import weatherstation.netatmo.com.netatmo_api_android.api.model.Station;
 
 public class NetatmoUtils {
-    public static final String KEY_ACCESS_TOKEN  = "access_token";
+    public static final String KEY_ACCESS_TOKEN = "access_token";
     public static final String KEY_REFRESH_TOKEN = "refresh_token";
-    public static final String KEY_EXPIRES_AT    = "expires_at";
+    public static final String KEY_EXPIRES_AT = "expires_at";
 
     public static HashMap<String, String> parseOAuthResponse(JSONObject response) {
         HashMap<String, String> parsedResponse = new HashMap<String, String>();
@@ -125,7 +125,7 @@ public class NetatmoUtils {
                 measures.setBeginTime((beginTime == null) ? 0 : Long.parseLong(beginTime) * 1000);
 
                 for (int i = 0; i < types.length; i++) {
-                    switch (types[i]){
+                    switch (types[i]) {
                         case Params.TYPE_TEMPERATURE:
                             measures.setTemperature(getJSONString(moduleData, types[i]));
                             break;
@@ -163,7 +163,7 @@ public class NetatmoUtils {
                 measures.setBeginTime((beginTime == null) ? 0 : Long.parseLong(beginTime) * 1000);
 
                 for (int i = 0; i < types.length; i++) {
-                    switch (types[i]){
+                    switch (types[i]) {
                         case Params.TYPE_TEMPERATURE:
                             measures.setTemperature(getJSONString(moduleData, types[i]));
                             break;

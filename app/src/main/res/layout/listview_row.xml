@@ -1,11 +1,11 @@
-<android.support.constraint.ConstraintLayout xmlns:app="http://schemas.android.com/apk/res-auto"
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
     android:layout_margin="0dp"
-    android:layout_marginBottom="0dp">
+    android:layout_marginBottom="0dp"
+    android:orientation="vertical">
 
     <TextView
         android:id="@+id/label_wind"

@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.preference.PreferenceManager;
-import android.util.Log;
 
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
@@ -89,19 +88,18 @@ public class SampleHttpClient extends NetatmoHttpClient {
 
     @Override
     protected String getAccessToken() {
-        return mSharedPreferences.getString(NetatmoUtils.KEY_ACCESS_TOKEN,null);
+        return mSharedPreferences.getString(NetatmoUtils.KEY_ACCESS_TOKEN, null);
     }
 
     @Override
     protected long getExpiresAt() {
-        return mSharedPreferences.getLong(NetatmoUtils.KEY_EXPIRES_AT,0);
+        return mSharedPreferences.getLong(NetatmoUtils.KEY_EXPIRES_AT, 0);
     }
 
 
+    public List<Measures> getMeasures() {
 
-    public List<Measures> getMeasures(){
-
-        Uri.Builder netatmoBuilder=new Uri.Builder();
+        Uri.Builder netatmoBuilder = new Uri.Builder();
         netatmoBuilder.scheme("https");
         netatmoBuilder.authority("api.netatmo.com");
         netatmoBuilder.appendPath("api");
@@ -111,26 +109,25 @@ public class SampleHttpClient extends NetatmoHttpClient {
         netatmoBuilder.appendQueryParameter("lon_ne", MainActivity.lon_ne);
         netatmoBuilder.appendQueryParameter("lat_sw", MainActivity.lat_sw);
         netatmoBuilder.appendQueryParameter("lon_sw", MainActivity.lon_sw);
-        String urlString=netatmoBuilder.build().toString();
-        URL url =null;
-        List<Measures> measures=new ArrayList<>();
+        String urlString = netatmoBuilder.build().toString();
+        URL url = null;
+        List<Measures> measures = new ArrayList<>();
         try {
-            url=new URL(urlString);
+            url = new URL(urlString);
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }
         HttpsURLConnection urlConnection;
         try {
-            urlConnection=(HttpsURLConnection) url.openConnection();
+            urlConnection = (HttpsURLConnection) url.openConnection();
             urlConnection.setConnectTimeout(10000);
             urlConnection.setReadTimeout(15000);
             urlConnection.setRequestMethod("GET");
-            InputStream inputStream=urlConnection.getInputStream();
-            String data=readStream(inputStream);
-            JSONObject jsonData=new JSONObject(data);
-            JSONArray body=jsonData.getJSONArray("body");
-            measures=getMeasures(body);
-
+            InputStream inputStream = urlConnection.getInputStream();
+            String data = readStream(inputStream);
+            JSONObject jsonData = new JSONObject(data);
+            JSONArray body = jsonData.getJSONArray("body");
+            measures = getMeasures(body);
 
 
         } catch (IOException e) {
@@ -142,16 +139,16 @@ public class SampleHttpClient extends NetatmoHttpClient {
         return measures;
     }
 
-    public String readStream(InputStream inputStream){
-        String string="";
+    public String readStream(InputStream inputStream) {
+        String string = "";
         try {
-            BufferedReader bufferedReader=new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
-            StringBuilder stringBuilder=new StringBuilder();
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
+            StringBuilder stringBuilder = new StringBuilder();
             String line;
-            while ((line=bufferedReader.readLine())!=null){
+            while ((line = bufferedReader.readLine()) != null) {
                 stringBuilder.append(line);
             }
-            string=stringBuilder.toString();
+            string = stringBuilder.toString();
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -161,25 +158,25 @@ public class SampleHttpClient extends NetatmoHttpClient {
         return string;
     }
 
-    public List<Measures> getMeasures(JSONArray jsonArray){
-        List<Measures> myList=new ArrayList<>();
-        for (int i=0; i<jsonArray.length(); i++){
+    public List<Measures> getMeasures(JSONArray jsonArray) {
+        List<Measures> myList = new ArrayList<>();
+        for (int i = 0; i < jsonArray.length(); i++) {
             try {
-                JSONObject jsonObject=jsonArray.getJSONObject(i);
-                Measures aMeasure=new Measures(0);
-                String stationId=jsonObject.getString("_id");
+                JSONObject jsonObject = jsonArray.getJSONObject(i);
+                Measures aMeasure = new Measures(0);
+                String stationId = jsonObject.getString("_id");
                 aMeasure.setStationId(stationId);
-                JSONObject place=jsonObject.getJSONObject("place");
-                String location=place.getString("timezone");
+                JSONObject place = jsonObject.getJSONObject("place");
+                String location = place.getString("timezone");
                 aMeasure.setLocation(location);
-                JSONObject measures=jsonObject.getJSONObject("measures");
-                Iterator<String> measuresKeys=measures.keys();
-                while (measuresKeys.hasNext()){
-                    String module= (String) measuresKeys.next();
+                JSONObject measures = jsonObject.getJSONObject("measures");
+                Iterator<String> measuresKeys = measures.keys();
+                while (measuresKeys.hasNext()) {
+                    String module = (String) measuresKeys.next();
                     if (measures.get(module) instanceof JSONObject) {
                         JSONObject moduleMeasures = measures.getJSONObject(module);
                         JSONArray measureTypes = moduleMeasures.optJSONArray("type");
-                        if (measureTypes!=null) {
+                        if (measureTypes != null) {
                             JSONObject res = moduleMeasures.getJSONObject("res");
                             Iterator<String> resKeys = res.keys();
                             String resKey = "";
@@ -233,9 +230,7 @@ public class SampleHttpClient extends NetatmoHttpClient {
                                     default:
                                 }
                             }
-                        }
-
-                        else {
+                        } else {
                             Iterator<String> resKeys = moduleMeasures.keys();
                             String resKey = "";
                             while (resKeys.hasNext()) {
@@ -292,8 +287,7 @@ public class SampleHttpClient extends NetatmoHttpClient {
                 }
 
                 myList.add(aMeasure);
-            }
-            catch (JSONException e) {
+            } catch (JSONException e) {
                 e.printStackTrace();
             }
 
@@ -303,20 +297,20 @@ public class SampleHttpClient extends NetatmoHttpClient {
     }
 
 
-    public void refresh(){
+    public void refresh() {
         refreshToken(getRefreshToken(), new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
-                JSONObject jsonObject= null;
+                JSONObject jsonObject = null;
                 try {
                     jsonObject = new JSONObject(response);
-                    String access_token=jsonObject.getString("access_token");
-                    String expires_in=jsonObject.getString("expires_in");
-                    String refresh_token=jsonObject.getString("refresh_token");
-                    SharedPreferences.Editor editor=mSharedPreferences.edit();
+                    String access_token = jsonObject.getString("access_token");
+                    String expires_in = jsonObject.getString("expires_in");
+                    String refresh_token = jsonObject.getString("refresh_token");
+                    SharedPreferences.Editor editor = mSharedPreferences.edit();
                     editor.putString(NetatmoUtils.KEY_REFRESH_TOKEN, refresh_token);
                     editor.putString(NetatmoUtils.KEY_ACCESS_TOKEN, access_token);
-                    editor.putLong(NetatmoUtils.KEY_EXPIRES_AT, Long.valueOf(expires_in)*1000+System.currentTimeMillis());
+                    editor.putLong(NetatmoUtils.KEY_EXPIRES_AT, Long.valueOf(expires_in) * 1000 + System.currentTimeMillis());
                     editor.apply();
                 } catch (JSONException e) {
                     e.printStackTrace();
