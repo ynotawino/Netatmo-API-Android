@@ -29,6 +29,7 @@ import java.util.List;
 import weatherstation.netatmo.com.netatmo_api_android.R;
 import weatherstation.netatmo.com.netatmo_api_android.api.model.Measures;
 
+//Adapter for the list in the main activity
 public class MyAdapter extends ArrayAdapter<Measures> {
     private Context mContext;
 
@@ -44,12 +45,12 @@ public class MyAdapter extends ArrayAdapter<Measures> {
         if (convertView == null) {
             myViewHolder = new MyViewHolder();
             convertView = LayoutInflater.from(getContext()).inflate(R.layout.listview_row, parent, false);
-            myViewHolder.temperature = (TextView) convertView.findViewById(R.id.text_temperature);
-            myViewHolder.humidity = (TextView) convertView.findViewById(R.id.text_humidity);
-            myViewHolder.rain_day = (TextView) convertView.findViewById(R.id.text_rain_day);
-            myViewHolder.wind_strength = (TextView) convertView.findViewById(R.id.text_wind_strength);
-            myViewHolder.wind_angle = (TextView) convertView.findViewById(R.id.text_wind_angle);
-            myViewHolder.location = (TextView) convertView.findViewById(R.id.text_location);
+            myViewHolder.temperature =  convertView.findViewById(R.id.text_temperature);
+            myViewHolder.humidity =  convertView.findViewById(R.id.text_humidity);
+            myViewHolder.rain_day =  convertView.findViewById(R.id.text_rain_day);
+            myViewHolder.wind_strength =  convertView.findViewById(R.id.text_wind_strength);
+            myViewHolder.wind_angle =  convertView.findViewById(R.id.text_wind_angle);
+            myViewHolder.location =  convertView.findViewById(R.id.text_location);
             myViewHolder.label_rain = convertView.findViewById(R.id.label_rain);
             myViewHolder.label_wind = convertView.findViewById(R.id.label_wind);
             convertView.setTag(myViewHolder);
@@ -58,6 +59,7 @@ public class MyAdapter extends ArrayAdapter<Measures> {
         myViewHolder = (MyViewHolder) convertView.getTag();
         Measures measures = getItem(position);
 
+        //If the measure has no data for the element, don't display it, otherwise display it
         if (measures.getRain() == null || measures.getRain().equals(Measures.STRING_NO_DATA)) {
             myViewHolder.rain_day.setVisibility(View.GONE);
             myViewHolder.label_rain.setVisibility(View.GONE);
@@ -80,8 +82,8 @@ public class MyAdapter extends ArrayAdapter<Measures> {
         } else {
             myViewHolder.label_wind.setVisibility(View.VISIBLE);
         }
-        myViewHolder.temperature.setText(mContext.getString(R.string.value_temperature, measures.getTemperature()));
-        myViewHolder.humidity.setText(mContext.getString(R.string.value_humidity, measures.getHumidity()));
+        myViewHolder.temperature.setText(measures.getTemperature().equals(Measures.STRING_NO_DATA)?Measures.STRING_NO_DATA:mContext.getString(R.string.value_temperature, measures.getTemperature()));
+        myViewHolder.humidity.setText(measures.getHumidity().equals(Measures.STRING_NO_DATA)?Measures.STRING_NO_DATA:mContext.getString(R.string.value_humidity, measures.getHumidity()));
         myViewHolder.rain_day.setText(mContext.getString(R.string.value_rain, measures.getSum_rain_24()));
         myViewHolder.wind_strength.setText(mContext.getString(R.string.value_wind, measures.getWindStrength()));
         myViewHolder.wind_angle.setText(mContext.getString(R.string.value_angle, measures.getWindAngle()));

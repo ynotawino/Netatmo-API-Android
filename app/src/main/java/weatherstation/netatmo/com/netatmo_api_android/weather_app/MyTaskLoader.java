@@ -6,6 +6,7 @@ import java.util.List;
 
 import weatherstation.netatmo.com.netatmo_api_android.api.model.Measures;
 
+//Load data in the background
 public class MyTaskLoader extends android.support.v4.content.AsyncTaskLoader<List<Measures>> {
 
     private int caller;
@@ -19,10 +20,13 @@ public class MyTaskLoader extends android.support.v4.content.AsyncTaskLoader<Lis
 
     @Override
     public List<Measures> loadInBackground() {
+        //If the caller was 1, refresh the access token
         if (caller == 1) {
             sampleHttpClient.refresh();
             return null;
-        } else {
+        }
+        //Otherwise, fetch data from the database
+        else {
             return sampleHttpClient.getMeasures();
         }
     }

@@ -58,12 +58,13 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
         setResult(RESULT_CANCELED);
 
-        mEmailView = (EditText) findViewById(R.id.email);
+        mEmailView = findViewById(R.id.email);
 
-        mPasswordView = (EditText) findViewById(R.id.password);
+        mPasswordView = findViewById(R.id.password);
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                //When enter is clicked, attempt login
                 if (actionId == 42 || actionId == EditorInfo.IME_NULL) {
                     attemptLogin();
                     return true;
@@ -72,7 +73,7 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
-        mSignInButtonView = (Button) findViewById(R.id.sign_in_button);
+        mSignInButtonView =  findViewById(R.id.sign_in_button);
         mSignInButtonView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.preference.PreferenceManager;
+import android.util.Log;
 
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
@@ -97,6 +98,7 @@ public class SampleHttpClient extends NetatmoHttpClient {
     }
 
 
+    //Get a list of measures
     public List<Measures> getMeasures() {
 
         Uri.Builder netatmoBuilder = new Uri.Builder();
@@ -110,13 +112,13 @@ public class SampleHttpClient extends NetatmoHttpClient {
         netatmoBuilder.appendQueryParameter("lat_sw", MainActivity.lat_sw);
         netatmoBuilder.appendQueryParameter("lon_sw", MainActivity.lon_sw);
         String urlString = netatmoBuilder.build().toString();
-        URL url = null;
-        List<Measures> measures = new ArrayList<>();
+        URL url=null;
         try {
             url = new URL(urlString);
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }
+        List<Measures> measures = new ArrayList<>();
         HttpsURLConnection urlConnection;
         try {
             urlConnection = (HttpsURLConnection) url.openConnection();
@@ -124,11 +126,13 @@ public class SampleHttpClient extends NetatmoHttpClient {
             urlConnection.setReadTimeout(15000);
             urlConnection.setRequestMethod("GET");
             InputStream inputStream = urlConnection.getInputStream();
+            //Read the data returned
             String data = readStream(inputStream);
             JSONObject jsonData = new JSONObject(data);
             JSONArray body = jsonData.getJSONArray("body");
+            //Get a list of measures from a JSONArray
             measures = getMeasures(body);
-
+            Log.e("Measures size",urlString);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -139,6 +143,7 @@ public class SampleHttpClient extends NetatmoHttpClient {
         return measures;
     }
 
+    //Read data from an InputStream and return a String value
     public String readStream(InputStream inputStream) {
         String string = "";
         try {
@@ -160,33 +165,41 @@ public class SampleHttpClient extends NetatmoHttpClient {
 
     public List<Measures> getMeasures(JSONArray jsonArray) {
         List<Measures> myList = new ArrayList<>();
+        //Iterate over the JSONArray body
         for (int i = 0; i < jsonArray.length(); i++) {
             try {
+                //Get the JSONObject at position i of the array
                 JSONObject jsonObject = jsonArray.getJSONObject(i);
                 Measures aMeasure = new Measures(0);
                 String stationId = jsonObject.getString("_id");
+                //Set the station id of the measure
                 aMeasure.setStationId(stationId);
                 JSONObject place = jsonObject.getJSONObject("place");
                 String location = place.getString("timezone");
+                //Set the location of the measure
                 aMeasure.setLocation(location);
                 JSONObject measures = jsonObject.getJSONObject("measures");
                 Iterator<String> measuresKeys = measures.keys();
+                //Iterate over the measures in the station
                 while (measuresKeys.hasNext()) {
-                    String module = (String) measuresKeys.next();
+                    String module =  measuresKeys.next();
                     if (measures.get(module) instanceof JSONObject) {
                         JSONObject moduleMeasures = measures.getJSONObject(module);
                         JSONArray measureTypes = moduleMeasures.optJSONArray("type");
+                        //If the module has a JSONArray "type", get the values of the types, stored in "res"
                         if (measureTypes != null) {
                             JSONObject res = moduleMeasures.getJSONObject("res");
                             Iterator<String> resKeys = res.keys();
                             String resKey = "";
                             while (resKeys.hasNext()) {
-                                resKey = (String) resKeys.next();
+                                resKey =  resKeys.next();
                             }
                             JSONArray resValues = res.getJSONArray(resKey);
+                            //Iterate over the types
                             for (int k = 0; k < measureTypes.length(); k++) {
                                 String measureType = measureTypes.getString(k);
                                 String measureValue = resValues.getString(k);
+                                //Set the values of the elements depending on their type
                                 switch (measureType) {
                                     case Params.TYPE_TEMPERATURE:
                                         aMeasure.setTemperature(measureValue);
@@ -230,13 +243,17 @@ public class SampleHttpClient extends NetatmoHttpClient {
                                     default:
                                 }
                             }
-                        } else {
+                        }
+                        //If the "type" array does not exist
+                        else {
                             Iterator<String> resKeys = moduleMeasures.keys();
-                            String resKey = "";
+                            String resKey ;
+                            //Iterate over the modules
                             while (resKeys.hasNext()) {
-                                resKey = (String) resKeys.next();
+                                resKey =  resKeys.next();
                                 String measureType = resKey;
                                 String measureValue = moduleMeasures.getString(resKey);
+                                //Set the values of the elements depending on their type
                                 switch (measureType) {
                                     case Params.TYPE_TEMPERATURE:
                                         aMeasure.setTemperature(measureValue);
@@ -285,7 +302,7 @@ public class SampleHttpClient extends NetatmoHttpClient {
 
                     }
                 }
-
+                //Add the measure to the list
                 myList.add(aMeasure);
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -297,11 +314,12 @@ public class SampleHttpClient extends NetatmoHttpClient {
     }
 
 
+    //Refresh the access token
     public void refresh() {
         refreshToken(getRefreshToken(), new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
-                JSONObject jsonObject = null;
+                JSONObject jsonObject ;
                 try {
                     jsonObject = new JSONObject(response);
                     String access_token = jsonObject.getString("access_token");
@@ -320,7 +338,7 @@ public class SampleHttpClient extends NetatmoHttpClient {
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-
+                Log.e("Refresh token error", error.getMessage());
             }
         });
     }

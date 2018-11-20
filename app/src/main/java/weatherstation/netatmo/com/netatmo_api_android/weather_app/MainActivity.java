@@ -40,9 +40,10 @@ import weatherstation.netatmo.com.netatmo_api_android.R;
 import weatherstation.netatmo.com.netatmo_api_android.api.NetatmoUtils;
 import weatherstation.netatmo.com.netatmo_api_android.api.model.Measures;
 
-
+//The main activity contains the main list
 public class MainActivity extends AppCompatActivity implements android.support.v4.app.LoaderManager.LoaderCallbacks<List<Measures>> {
 
+    public static final int REQUESTPLACE = 10;
     public static String lat_sw = "-4.562415";
     public static String lon_sw = "35.438138";
     public static String lat_ne = "4.323179";
@@ -64,11 +65,11 @@ public class MainActivity extends AppCompatActivity implements android.support.v
         setContentView(R.layout.activity_main);
 
         sampleHttpClient = new SampleHttpClient(this);
-        btnLocation = (Button) findViewById(R.id.button_location);
-        btnRefresh = (Button) findViewById(R.id.button_refresh);
-        textLocation = (TextView) findViewById(R.id.text_location_selected);
-        progressBar = (ProgressBar) findViewById(R.id.progressBar_main);
-        emptyView = (TextView) findViewById(R.id.text_empty_view);
+        btnLocation =  findViewById(R.id.button_location);
+        btnRefresh =  findViewById(R.id.button_refresh);
+        textLocation =  findViewById(R.id.text_location_selected);
+        progressBar =  findViewById(R.id.progressBar_main);
+        emptyView =  findViewById(R.id.text_empty_view);
         stations = new ArrayList<>();
         locations = new HashSet<>();
         mAdapter = new MyAdapter(this, stations);
@@ -76,21 +77,49 @@ public class MainActivity extends AppCompatActivity implements android.support.v
         listView.setAdapter(mAdapter);
         listView.setEmptyView(emptyView);
         dispatcher = new FirebaseJobDispatcher(new GooglePlayDriver(this));
+
+        //Start a new background job fetching data in the background every twenty minutes
         Job job = dispatcher.newJobBuilder().setService(BackgroundService.class).setConstraints(Constraint.ON_ANY_NETWORK).setLifetime(Lifetime.FOREVER).setRecurring(true).setTrigger(Trigger.executionWindow(0, 1200)).setTag("Fetch data always").build();
         dispatcher.mustSchedule(job);
 
+        //Open the descriptive view of the item selected
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent intent = new Intent(MainActivity.this, WeatherActivity.class);
                 Measures measures = (Measures) parent.getAdapter().getItem(position);
-                if (measures.getStationId() != null && !measures.getStationId().equals("")) {
+                //If the measure item selected belongs to a station, add stationId
+                if (measures.getStationId() != null && !measures.getStationId().contains(",")) {
                     intent.putExtra("stationId", measures.getStationId());
+                }
+                //If the measure item selected belongs to a location, add stationIds
+                else if (measures.getStationId() != null && measures.getStationId().contains(",")) {
+                    intent.putExtra("stationIds", measures.getStationId());
                 }
                 intent.putExtra("data", measures);
                 startActivity(intent);
             }
         });
+
+        //if the user is already logged
+        if (sampleHttpClient.getAccessToken() != null) {
+            LoaderManager.getInstance(this).initLoader(1, null, this).forceLoad();
+            //If the access token is still valid, fetch data from Netatmo
+            if (PreferenceManager.getDefaultSharedPreferences(this).getLong(NetatmoUtils.KEY_EXPIRES_AT, 0) > System.currentTimeMillis()) {
+                initActionBar();
+            }
+            //If the access token expired, refresh it
+            else {
+                LoaderManager.getInstance(this).initLoader(1, null, this).forceLoad();
+            }
+        }
+        //else, starts the LoginActivity
+        else {
+            Intent intent = new Intent(this, LoginActivity.class);
+            startActivityForResult(intent, 0);
+        }
+
+        //Select a location to view measures for
         btnLocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -106,27 +135,19 @@ public class MainActivity extends AppCompatActivity implements android.support.v
             }
         });
 
+        //Fetch data again
         btnRefresh.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                initActionBar();
+                if (PreferenceManager.getDefaultSharedPreferences(MainActivity.this).getLong(NetatmoUtils.KEY_EXPIRES_AT, 0) > System.currentTimeMillis()) {
+                    initActionBar();
+                }
+                //If the access token expired, refresh it
+                else {
+                    LoaderManager.getInstance(MainActivity.this).initLoader(1, null, MainActivity.this).forceLoad();
+                }
             }
         });
-
-        if (sampleHttpClient.getAccessToken() != null) {
-            //if the user is already logged
-            Log.e("Expires at", PreferenceManager.getDefaultSharedPreferences(this).getLong(NetatmoUtils.KEY_EXPIRES_AT, 0) + "");
-            Log.e("Current time", System.currentTimeMillis() + "");
-            if (PreferenceManager.getDefaultSharedPreferences(this).getLong(NetatmoUtils.KEY_EXPIRES_AT, 0) > System.currentTimeMillis()) {
-                initActionBar();
-            } else {
-                LoaderManager.getInstance(this).initLoader(1, null, this).forceLoad();
-            }
-        } else {
-            //else, starts the LoginActivity
-            Intent intent = new Intent(this, LoginActivity.class);
-            startActivityForResult(intent, 0);
-        }
 
 
     }
@@ -143,20 +164,26 @@ public class MainActivity extends AppCompatActivity implements android.support.v
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
+        //If the user signs out, clear their access tokens
         if (id == R.id.action_sign_out) {
             sampleHttpClient.clearTokens();
             Intent intent = new Intent(this, LoginActivity.class);
             startActivityForResult(intent, 0);
             return true;
-        } else if (id == R.id.action_main_location) {
+        }
+        //Toggle between viewing stations and locations
+        else if (id == R.id.action_main_location) {
+            //When the user clicks view locations, view the list of locations
             if (item.getTitle().toString().equals("View Locations")) {
+                item.setTitle("View Stations");
                 mAdapter.clear();
                 mAdapter.addAll(locations);
-                item.setTitle("View Stations");
-            } else {
+            }
+            //When the user clicks view stations, view a list of stations
+            else {
+                item.setTitle("View Locations");
                 mAdapter.clear();
                 mAdapter.addAll(stations);
-                item.setTitle("View Locations");
             }
             return true;
         }
@@ -164,41 +191,47 @@ public class MainActivity extends AppCompatActivity implements android.support.v
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        Job job = dispatcher.newJobBuilder().setService(BackgroundService.class).setConstraints(Constraint.ON_ANY_NETWORK).setLifetime(Lifetime.UNTIL_NEXT_BOOT).setReplaceCurrent(true).setRecurring(false).setTrigger(Trigger.executionWindow(0, 0)).setTag("Fetch location data").build();
-        dispatcher.mustSchedule(job);
-    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode != 10) {
+
+        //If the requestCode is not for getting a place, it is for login in
+        if (requestCode != REQUESTPLACE) {
+            //If the user did not log in, close the app
             if (resultCode == RESULT_CANCELED) {
                 finish();
-            } else if (resultCode == RESULT_OK) {
+            }
+            //If the user logged in, display a list of measurements
+            else if (resultCode == RESULT_OK) {
                 initActionBar();
             }
-        } else {
+        }
+        //If the requestCode is for picking a place
+        else {
             if (resultCode == RESULT_OK) {
-                Job job = dispatcher.newJobBuilder().setService(BackgroundService.class).setConstraints(Constraint.ON_ANY_NETWORK).setLifetime(Lifetime.UNTIL_NEXT_BOOT).setReplaceCurrent(true).setRecurring(false).setTrigger(Trigger.executionWindow(0, 0)).setTag("Fetch location data").build();
+                //Send data about the stations in the picked place to the database
+                Job job = dispatcher.newJobBuilder().setService(BackgroundService.class).setConstraints(Constraint.ON_ANY_NETWORK).setLifetime(Lifetime.UNTIL_NEXT_BOOT).setReplaceCurrent(true).setRecurring(false).setTrigger(Trigger.executionWindow(0, 0)).setTag("Fetch location data Place").build();
                 dispatcher.mustSchedule(job);
                 Place place = PlacePicker.getPlace(this, data);
                 textLocation.setText(place.getName());
-                LatLng coordinates = place.getLatLng();
                 LatLngBounds coordinateBounds = place.getViewport();
+                //If the place picked has coordinateBounds, use them to set latitudes and longitudes
                 if (coordinateBounds != null) {
                     lat_sw = coordinateBounds.southwest.latitude + "";
                     lon_sw = coordinateBounds.southwest.longitude + "";
                     lat_ne = coordinateBounds.northeast.latitude + "";
                     lon_ne = coordinateBounds.northeast.longitude + "";
-                } else {
+                }
+                //If the place does not have coordinate bounds, use its latitude and longitude for southwest bound, and their values plus one as north east
+                else {
+                    LatLng coordinates = place.getLatLng();
                     lat_sw = coordinates.latitude + "";
                     lon_sw = coordinates.longitude + "";
                     lat_ne = (coordinates.latitude + 1) + "";
                     lon_ne = (coordinates.longitude + 1) + "";
                 }
+                //Fetch data from Netatmo
                 initActionBar();
             }
 
@@ -209,8 +242,10 @@ public class MainActivity extends AppCompatActivity implements android.support.v
 
     private void initActionBar() {
 
+        //If the loader has not been instantiated yet, create it
         if (LoaderManager.getInstance(this).getLoader(0) == null)
             LoaderManager.getInstance(this).initLoader(0, null, this).forceLoad();
+        //Otherwise restart the loader
         else
             LoaderManager.getInstance(this).restartLoader(0, null, this).forceLoad();
 
@@ -224,31 +259,43 @@ public class MainActivity extends AppCompatActivity implements android.support.v
         progressBar.setVisibility(View.VISIBLE);
         listView.setVisibility(View.GONE);
         emptyView.setVisibility(View.GONE);
+        //Start the loader to fetch data
         if (id == 0) {
             return new MyTaskLoader(this, 0);
-        } else {
+        }
+        //Start the loader to refresh tokens
+        else {
             return new MyTaskLoader(this, 1);
         }
     }
 
     @Override
     public void onLoadFinished(@NonNull android.support.v4.content.Loader<List<Measures>> loader, List<Measures> data) {
+        //If the loader was refreshing tokens, fetch data
         if (loader.getId() == 1) {
             initActionBar();
-        } else {
+        }
+        //Display the fetched data
+        else {
             listView.setVisibility(View.VISIBLE);
             progressBar.setVisibility(View.GONE);
+            //Empty the stations list
             if (!stations.isEmpty())
                 stations.clear();
+            //Add stations to the stations list
             stations = data;
+            //Display the stations
             mAdapter.clear();
             mAdapter.addAll(stations);
             emptyView.setText("No items found");
 
+            //Empty the locations list
             if (!locations.isEmpty())
                 locations.clear();
+            //Store one station per location in a temporary set
             Set<Measures> tempLocations = new HashSet<>(stations);
 
+            //Iterate over every available location
             for (Measures location : tempLocations) {
                 int stationsHumidity, stationsGustStrength, stationsGustAngle, stationsNoise, stationsPressure, stationsRain, stationsRainHour, stationsRainDay, stationsWindStrength, stationsWindAngle, stationsTemp;
                 stationsHumidity = 0;
@@ -274,8 +321,14 @@ public class MainActivity extends AppCompatActivity implements android.support.v
                 valueWindStrength = 0;
                 valueWindAngle = 0;
                 valueTemp = 0;
+                StringBuilder stationIds = new StringBuilder();
+                //Iterate over all fetched stations
                 for (Measures station : data) {
+                    //If a station belongs to the location
                     if (station.getLocation().equals(location.getLocation())) {
+                        //Add the stationId
+                        stationIds.append(station.getStationId()).append(",");
+                        //If there is data, increase the count of the element by 1, and add the value to the running total
                         if (!station.getHumidity().equals(Measures.STRING_NO_DATA)) {
                             stationsHumidity++;
                             valueHumidity += Float.valueOf(station.getHumidity());
@@ -326,7 +379,12 @@ public class MainActivity extends AppCompatActivity implements android.support.v
 
                 DecimalFormat decimalFormat = new DecimalFormat("####.##");
                 Measures locationMeasure = new Measures();
+                //Set the stationId to the concatenated stationIds
+                locationMeasure.setStationId(stationIds.toString());
+                //Set the location to the location of the station
                 locationMeasure.setLocation(location.getLocation());
+                //If one or more stations in a location measured an element, set the element to the average obtained by dividing the running total of the
+                //element by the number of stations that measure the element. Otherwise set the element to "No data"
                 if (stationsHumidity > 0) {
                     locationMeasure.setHumidity(decimalFormat.format(WeatherActivity.getAvg(valueHumidity, stationsHumidity)));
                 } else {
@@ -383,6 +441,7 @@ public class MainActivity extends AppCompatActivity implements android.support.v
                     locationMeasure.setTemperature(Measures.STRING_NO_DATA);
                 }
 
+                //Add the measure to the locations list
                 locations.add(locationMeasure);
             }
 

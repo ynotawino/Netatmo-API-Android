@@ -14,6 +14,7 @@ import java.util.List;
 import weatherstation.netatmo.com.netatmo_api_android.api.NetatmoUtils;
 import weatherstation.netatmo.com.netatmo_api_android.api.model.Measures;
 
+//This class is for sending station data to the database in the background
 public class BackgroundService extends JobService {
     private SampleHttpClient sampleHttpClient;
     private DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
@@ -26,15 +27,13 @@ public class BackgroundService extends JobService {
 
     @Override
     public boolean onStartJob(final JobParameters job) {
+        //if the user is already logged
         if (sampleHttpClient.getAccessToken() != null) {
-            //if the user is already logged
-            Log.e("Expires at", PreferenceManager.getDefaultSharedPreferences(this).getLong(NetatmoUtils.KEY_EXPIRES_AT, 0) + "");
-            Log.e("Current time", System.currentTimeMillis() + "");
             Runnable getData = new Runnable() {
                 @Override
                 public void run() {
                     addDbData();
-                    jobFinished(job, true);
+                    jobFinished(job, false);
                 }
             };
 
@@ -43,20 +42,23 @@ public class BackgroundService extends JobService {
                 public void run() {
                     sampleHttpClient.refresh();
                     addDbData();
-                    jobFinished(job, true);
+                    jobFinished(job, false);
                 }
             };
 
             if (PreferenceManager.getDefaultSharedPreferences(this).getLong(NetatmoUtils.KEY_EXPIRES_AT, 0) > System.currentTimeMillis()) {
+                //If the access token has not expired, get data from Netatmo and add it to the database
                 new Thread(getData).start();
-
-            } else {
+            }
+            else {
+                //If the access token has expired, get the access token first then get Netatmo data and add it to the database
                 new Thread(refresh).start();
             }
         }
         return false;
     }
 
+    //Get data from Netatmo and add it to the db
     private void addDbData() {
         List<Measures> measures = sampleHttpClient.getMeasures();
         Calendar calendar = Calendar.getInstance();
