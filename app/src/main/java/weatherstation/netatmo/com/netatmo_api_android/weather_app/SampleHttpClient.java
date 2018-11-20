@@ -132,8 +132,6 @@ public class SampleHttpClient extends NetatmoHttpClient {
             JSONArray body = jsonData.getJSONArray("body");
             //Get a list of measures from a JSONArray
             measures = getMeasures(body);
-            Log.e("Measures size",urlString);
-
         } catch (IOException e) {
             e.printStackTrace();
         } catch (JSONException e) {
