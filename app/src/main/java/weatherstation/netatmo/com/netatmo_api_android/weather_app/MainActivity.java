@@ -3,9 +3,7 @@ package weatherstation.netatmo.com.netatmo_api_android.weather_app;
 import android.content.Intent;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
-import android.support.v4.app.LoaderManager;
-import android.support.v7.app.AppCompatActivity;
+
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -16,12 +14,18 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.firebase.jobdispatcher.Constraint;
-import com.firebase.jobdispatcher.FirebaseJobDispatcher;
-import com.firebase.jobdispatcher.GooglePlayDriver;
-import com.firebase.jobdispatcher.Job;
-import com.firebase.jobdispatcher.Lifetime;
-import com.firebase.jobdispatcher.Trigger;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.loader.app.LoaderManager;
+import androidx.loader.content.Loader;
+import androidx.work.Constraints;
+import androidx.work.ExistingPeriodicWorkPolicy;
+import androidx.work.ExistingWorkPolicy;
+import androidx.work.NetworkType;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkManager;
+
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.location.places.Place;
@@ -34,13 +38,14 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import weatherstation.netatmo.com.netatmo_api_android.R;
 import weatherstation.netatmo.com.netatmo_api_android.api.NetatmoUtils;
 import weatherstation.netatmo.com.netatmo_api_android.api.model.Measures;
 
 //The main activity contains the main list
-public class MainActivity extends AppCompatActivity implements android.support.v4.app.LoaderManager.LoaderCallbacks<List<Measures>> {
+public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<List<Measures>> {
 
     public static final int REQUESTPLACE = 10;
     public static String lat_sw = "-4.562415";
@@ -53,7 +58,6 @@ public class MainActivity extends AppCompatActivity implements android.support.v
     private ListView listView;
     private Button btnLocation, btnRefresh;
     private SampleHttpClient sampleHttpClient;
-    private FirebaseJobDispatcher dispatcher;
     private Set<Measures> locations;
     private List<Measures> stations;
 
@@ -75,11 +79,15 @@ public class MainActivity extends AppCompatActivity implements android.support.v
         listView = findViewById(R.id.list);
         listView.setAdapter(mAdapter);
         listView.setEmptyView(emptyView);
-        dispatcher = new FirebaseJobDispatcher(new GooglePlayDriver(this));
 
-        //Start a new background job fetching data in the background every twenty minutes
-        Job job = dispatcher.newJobBuilder().setService(BackgroundService.class).setConstraints(Constraint.ON_ANY_NETWORK).setLifetime(Lifetime.FOREVER).setRecurring(true).setTrigger(Trigger.executionWindow(0, 1200)).setTag("Fetch data always").build();
-        dispatcher.mustSchedule(job);
+        //Start a new background job fetching data in the background every hour
+        androidx.work.Constraints constraints=new Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build();
+        PeriodicWorkRequest workRequest=new PeriodicWorkRequest.Builder(BackgroundService.class, 1, TimeUnit.HOURS).setConstraints(constraints).build();
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork("sync", ExistingPeriodicWorkPolicy.KEEP, workRequest);
+
+        //Start a new background job fetching data in the background refreshing access token every hour
+        PeriodicWorkRequest tokenRequest=new PeriodicWorkRequest.Builder(RefreshTokenService.class, 1, TimeUnit.HOURS).setConstraints(constraints).build();
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork("sync", ExistingPeriodicWorkPolicy.KEEP, tokenRequest);
 
         //Open the descriptive view of the item selected
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -218,8 +226,9 @@ public class MainActivity extends AppCompatActivity implements android.support.v
         else {
             if (resultCode == RESULT_OK) {
                 //Send data about the stations in the picked place to the database
-                Job job = dispatcher.newJobBuilder().setService(BackgroundService.class).setConstraints(Constraint.ON_ANY_NETWORK).setLifetime(Lifetime.UNTIL_NEXT_BOOT).setReplaceCurrent(true).setRecurring(false).setTrigger(Trigger.executionWindow(0, 0)).setTag("Fetch location data Place").build();
-                dispatcher.mustSchedule(job);
+                androidx.work.Constraints constraints=new Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build();
+                OneTimeWorkRequest workRequest=new OneTimeWorkRequest.Builder(BackgroundService.class).setConstraints(constraints).build();
+                WorkManager.getInstance(this).enqueueUniqueWork("place", ExistingWorkPolicy.REPLACE, workRequest);
                 Place place = PlacePicker.getPlace(this, data);
                 textLocation.setText(place.getName());
                 LatLngBounds coordinateBounds = place.getViewport();
@@ -262,7 +271,7 @@ public class MainActivity extends AppCompatActivity implements android.support.v
 
     @NonNull
     @Override
-    public android.support.v4.content.Loader<List<Measures>> onCreateLoader(int id, Bundle args) {
+    public Loader<List<Measures>> onCreateLoader(int id, Bundle args) {
         progressBar.setVisibility(View.VISIBLE);
         listView.setVisibility(View.GONE);
         emptyView.setVisibility(View.GONE);
@@ -277,7 +286,7 @@ public class MainActivity extends AppCompatActivity implements android.support.v
     }
 
     @Override
-    public void onLoadFinished(@NonNull android.support.v4.content.Loader<List<Measures>> loader, List<Measures> data) {
+    public void onLoadFinished(@NonNull Loader<List<Measures>> loader, List<Measures> data) {
         //If the loader was refreshing tokens, fetch data
         if (loader.getId() == 1) {
             initActionBar();
@@ -458,7 +467,7 @@ public class MainActivity extends AppCompatActivity implements android.support.v
     }
 
     @Override
-    public void onLoaderReset(@NonNull android.support.v4.content.Loader<List<Measures>> loader) {
+    public void onLoaderReset(@NonNull Loader<List<Measures>> loader) {
         loader.reset();
     }
 

@@ -2,12 +2,14 @@ package weatherstation.netatmo.com.netatmo_api_android.weather_app;
 
 import android.content.Context;
 
+import androidx.loader.content.AsyncTaskLoader;
+
 import java.util.List;
 
 import weatherstation.netatmo.com.netatmo_api_android.api.model.Measures;
 
 //Load data in the background
-public class MyTaskLoader extends android.support.v4.content.AsyncTaskLoader<List<Measures>> {
+public class MyTaskLoader extends AsyncTaskLoader<List<Measures>> {
 
     private int caller;
     private SampleHttpClient sampleHttpClient;
